@@ -7,6 +7,9 @@ app.use(express.json());
 const bookRoutes = require('./routes/bookRoutes');
 app.use('/books', bookRoutes);
 
+const userRoutes = require('./routes/userRoutes');
+app.use('/users', userRoutes);
+
 app.get('/', (req, res) => {
   res.send('E-book Management API running');
 });
