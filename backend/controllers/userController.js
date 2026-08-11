@@ -5,10 +5,12 @@ const bcrypt = require('bcryptjs');
 const registerUser = async (req, res) => {
   try {
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
-
+    const adminEmails = process.env.ADMIN_EMAILS.split(',');
+const role = adminEmails.includes(req.body.email) ? 'admin' : 'user';
     const newUser = await User.create({
       email: req.body.email,
-      password: hashedPassword
+      password: hashedPassword,
+      role
     });
 
     res.status(201).json({ message: 'User registered successfully' });
