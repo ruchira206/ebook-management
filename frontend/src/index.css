@@ -1,1 +1,21 @@
 @import "tailwindcss";
+
+:root {
+  --ink: #2b2418;
+  --parchment: #f6f0e4;
+  --card: #fffdf8;
+  --leather: #7a2e1d;
+  --leather-dark: #5e2216;
+  --moss: #435c43;
+  --line: #e3d8c2;
+}
+
+body {
+  background-color: var(--parchment);
+  color: var(--ink);
+  font-family: 'Inter', sans-serif;
+}
+
+.font-display {
+  font-family: 'Fraunces', serif;
+}
