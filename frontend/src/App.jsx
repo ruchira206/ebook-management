@@ -20,6 +20,8 @@ function App() {
   const [fileFormat, setFileFormat] = useState('pdf');
   const [addMessage, setAddMessage] = useState('');
 
+  const [editingId, setEditingId] = useState(null);
+
   const fetchBooks = async () => {
     const response = await fetch('http://localhost:3000/books');
     const data = await response.json();
@@ -83,11 +85,26 @@ function App() {
     localStorage.removeItem('token');
   };
 
-  const handleAddBook = async (e) => {
+  const resetForm = () => {
+    setBookName('');
+    setAuthor('');
+    setCategory('');
+    setDescription('');
+    setCoverImage('');
+    setFileFormat('pdf');
+    setEditingId(null);
+  };
+
+  const handleAddOrUpdateBook = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:3000/books', {
-        method: 'POST',
+      const url = editingId
+        ? `http://localhost:3000/books/${editingId}`
+        : 'http://localhost:3000/books';
+      const method = editingId ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
@@ -104,20 +121,27 @@ function App() {
       const data = await response.json();
 
       if (!response.ok) {
-        setAddMessage(data.error || 'Failed to add book');
+        setAddMessage(data.error || 'Failed to save book');
         return;
       }
 
-      setAddMessage('Book added successfully');
-      setBookName('');
-      setAuthor('');
-      setCategory('');
-      setDescription('');
-      setCoverImage('');
+      setAddMessage(editingId ? 'Book updated successfully' : 'Book added successfully');
+      resetForm();
       fetchBooks();
     } catch (err) {
       setAddMessage('Something went wrong');
     }
+  };
+
+  const handleEditClick = (book) => {
+    setEditingId(book._id);
+    setBookName(book.bookName);
+    setAuthor(book.author);
+    setCategory(book.category);
+    setDescription(book.description);
+    setCoverImage(book.coverImage);
+    setFileFormat(book.fileFormat);
+    setAddMessage('');
   };
 
   const handleDelete = async (id) => {
@@ -133,6 +157,7 @@ function App() {
         return;
       }
 
+      if (editingId === id) resetForm();
       fetchBooks();
     } catch (err) {
       alert('Something went wrong');
@@ -197,8 +222,10 @@ function App() {
             Logout
           </button>
 
-          <form onSubmit={handleAddBook} className="max-w-sm">
-            <h2 className="text-xl font-bold mb-2">Add Book</h2>
+          <form onSubmit={handleAddOrUpdateBook} className="max-w-sm">
+            <h2 className="text-xl font-bold mb-2">
+              {editingId ? 'Edit Book' : 'Add Book'}
+            </h2>
             <input
               type="text"
               placeholder="Book Name"
@@ -247,9 +274,20 @@ function App() {
               <option value="pdf">pdf</option>
               <option value="epub">epub</option>
             </select>
-            <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">
-              Add Book
-            </button>
+            <div className="flex gap-2">
+              <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">
+                {editingId ? 'Update Book' : 'Add Book'}
+              </button>
+              {editingId && (
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="bg-gray-400 text-white px-4 py-2 rounded"
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
             {addMessage && <p className="mt-2 text-sm">{addMessage}</p>}
           </form>
         </div>
@@ -262,12 +300,20 @@ function App() {
             <p className="text-gray-600">{book.author}</p>
           </div>
           {token && (
-            <button
-              onClick={() => handleDelete(book._id)}
-              className="bg-red-500 text-white px-3 py-1 rounded text-sm"
-            >
-              Delete
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleEditClick(book)}
+                className="bg-yellow-500 text-white px-3 py-1 rounded text-sm"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => handleDelete(book._id)}
+                className="bg-red-500 text-white px-3 py-1 rounded text-sm"
+              >
+                Delete
+              </button>
+            </div>
           )}
         </div>
       ))}
